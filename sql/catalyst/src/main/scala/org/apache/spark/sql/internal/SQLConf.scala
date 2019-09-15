@@ -2475,6 +2475,13 @@ object SQLConf {
       .intConf
       .createWithDefault(SHUFFLE_SPILL_NUM_ELEMENTS_FORCE_SPILL_THRESHOLD.defaultValue.get)
 
+  val WINDOW_EXEC_BUFFER_SIZE_SPILL_THRESHOLD =
+    buildConf("spark.sql.windowExec.buffer.spill.size.threshold")
+      .internal()
+      .doc("Threshold for size of rows to be spilled by window operator")
+      .bytesConf(ByteUnit.BYTE)
+      .createWithDefault(SHUFFLE_SPILL_REDUCE_MAX_SIZE_FORCE_SPILL_THRESHOLD.defaultValue.get)
+
   val SORT_MERGE_JOIN_EXEC_BUFFER_IN_MEMORY_THRESHOLD =
     buildConf("spark.sql.sortMergeJoinExec.buffer.in.memory.threshold")
       .internal()
@@ -2491,6 +2498,13 @@ object SQLConf {
       .version("2.2.0")
       .intConf
       .createWithDefault(SHUFFLE_SPILL_NUM_ELEMENTS_FORCE_SPILL_THRESHOLD.defaultValue.get)
+
+  val SORT_MERGE_JOIN_EXEC_BUFFER_SIZE_SPILL_THRESHOLD =
+    buildConf("spark.sql.sortMergeJoinExec.buffer.spill.size.threshold")
+      .internal()
+      .doc("Threshold for size of rows to be spilled by sort merge join operator")
+      .bytesConf(ByteUnit.BYTE)
+      .createWithDefault(SHUFFLE_SPILL_MAP_MAX_SIZE_FORCE_SPILL_THRESHOLD.defaultValue.get)
 
   val CARTESIAN_PRODUCT_EXEC_BUFFER_IN_MEMORY_THRESHOLD =
     buildConf("spark.sql.cartesianProductExec.buffer.in.memory.threshold")
@@ -4318,17 +4332,25 @@ class SQLConf extends Serializable with Logging {
 
   def sessionWindowBufferSpillThreshold: Int = getConf(SESSION_WINDOW_BUFFER_SPILL_THRESHOLD)
 
+  def windowExecBufferSpillSizeThreshold: Long = getConf(WINDOW_EXEC_BUFFER_SIZE_SPILL_THRESHOLD)
+
   def sortMergeJoinExecBufferInMemoryThreshold: Int =
     getConf(SORT_MERGE_JOIN_EXEC_BUFFER_IN_MEMORY_THRESHOLD)
 
   def sortMergeJoinExecBufferSpillThreshold: Int =
     getConf(SORT_MERGE_JOIN_EXEC_BUFFER_SPILL_THRESHOLD)
 
+  def sortMergeJoinExecBufferSpillSizeThreshold: Long =
+    getConf(SORT_MERGE_JOIN_EXEC_BUFFER_SIZE_SPILL_THRESHOLD)
+
   def cartesianProductExecBufferInMemoryThreshold: Int =
     getConf(CARTESIAN_PRODUCT_EXEC_BUFFER_IN_MEMORY_THRESHOLD)
 
   def cartesianProductExecBufferSpillThreshold: Int =
     getConf(CARTESIAN_PRODUCT_EXEC_BUFFER_SPILL_THRESHOLD)
+
+  def cartesianProductExecBufferSizeSpillThreshold: Long =
+    getConf(CARTESIAN_PRODUCT_EXEC_BUFFER_SIZE_SPILL_THRESHOLD)
 
   def codegenSplitAggregateFunc: Boolean = getConf(SQLConf.CODEGEN_SPLIT_AGGREGATE_FUNC)
 
