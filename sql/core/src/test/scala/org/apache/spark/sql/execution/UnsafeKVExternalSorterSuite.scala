@@ -252,6 +252,7 @@ class UnsafeKVExternalSorterSuite extends SparkFunSuite with SharedSparkSession 
         sparkContext.env.serializerManager,
         taskMemoryManager.pageSizeBytes(),
         Int.MaxValue,
+        Long.MaxValue,
         map)
       assert(sorter.getSpillSize === expectedSpillSize)
     } finally {
@@ -277,6 +278,7 @@ class UnsafeKVExternalSorterSuite extends SparkFunSuite with SharedSparkSession 
         sparkContext.env.serializerManager,
         taskMemoryManager.pageSizeBytes(),
         Int.MaxValue,
+        Long.MaxValue,
         map1)
       val sorter2 = new UnsafeKVExternalSorter(
         schema,
@@ -285,6 +287,7 @@ class UnsafeKVExternalSorterSuite extends SparkFunSuite with SharedSparkSession 
         sparkContext.env.serializerManager,
         taskMemoryManager.pageSizeBytes(),
         Int.MaxValue,
+        Long.MaxValue,
         map2)
       sorter1.merge(sorter2)
       assert(sorter1.getSpillSize === expectedSpillSize)

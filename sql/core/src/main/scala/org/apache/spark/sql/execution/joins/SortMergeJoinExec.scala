@@ -116,7 +116,7 @@ case class SortMergeJoinExec(
   }
 
   private def getSpillSizeThreshold: Long = {
-    sqlContext.conf.sortMergeJoinExecBufferSpillSizeThreshold
+    conf.sortMergeJoinExecBufferSpillSizeThreshold
   }
 
   private def getInMemoryThreshold: Int = {
@@ -1282,7 +1282,6 @@ private[joins] class SortMergeJoinScanner(
     spillSizeThreshold: Long,
     eagerCleanupResources: () => Unit,
     onlyBufferFirstMatch: Boolean = false) {
-    eagerCleanupResources: () => Unit) {
   private[this] var streamedRow: InternalRow = _
   private[this] var streamedRowKey: InternalRow = _
   private[this] var bufferedRow: InternalRow = _

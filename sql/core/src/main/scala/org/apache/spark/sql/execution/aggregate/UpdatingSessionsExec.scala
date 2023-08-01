@@ -51,10 +51,11 @@ case class UpdatingSessionsExec(
   override protected def doExecute(): RDD[InternalRow] = {
     val inMemoryThreshold = conf.sessionWindowBufferInMemoryThreshold
     val spillThreshold = conf.sessionWindowBufferSpillThreshold
+    val spillSizeThreshold = conf.windowExecBufferSpillSizeThreshold
 
     child.execute().mapPartitions { iter =>
       new UpdatingSessionsIterator(iter, groupingExpression, sessionExpression,
-        child.output, inMemoryThreshold, spillThreshold)
+        child.output, inMemoryThreshold, spillThreshold, spillSizeThreshold)
     }
   }
 
