@@ -64,10 +64,11 @@ class UpdatingSessionsIteratorSuite extends SharedSparkSession {
   // just copying default values to avoid bothering with SQLContext
   val inMemoryThreshold = 4096
   val spillThreshold = Int.MaxValue
+  val spillSizeThreshold = Long.MaxValue
 
   test("no row") {
     val iterator = new UpdatingSessionsIterator(None.iterator, keysWithSessionAttributes,
-      sessionAttribute, rowAttributes, inMemoryThreshold, spillThreshold)
+      sessionAttribute, rowAttributes, inMemoryThreshold, spillThreshold, spillSizeThreshold)
 
     assert(!iterator.hasNext)
   }
@@ -76,7 +77,7 @@ class UpdatingSessionsIteratorSuite extends SharedSparkSession {
     val rows = List(createRow("a", 1, 100, 110, 10, 1.1))
 
     val iterator = new UpdatingSessionsIterator(rows.iterator, keysWithSessionAttributes,
-      sessionAttribute, rowAttributes, inMemoryThreshold, spillThreshold)
+      sessionAttribute, rowAttributes, inMemoryThreshold, spillThreshold, spillSizeThreshold)
 
     assert(iterator.hasNext)
 
@@ -94,7 +95,7 @@ class UpdatingSessionsIteratorSuite extends SharedSparkSession {
     val rows = List(row1, row2, row3, row4)
 
     val iterator = new UpdatingSessionsIterator(rows.iterator, keysWithSessionAttributes,
-      sessionAttribute, rowAttributes, inMemoryThreshold, spillThreshold)
+      sessionAttribute, rowAttributes, inMemoryThreshold, spillThreshold, spillSizeThreshold)
 
     val retRows = rows.indices.map { _ =>
       assert(iterator.hasNext)
@@ -125,7 +126,7 @@ class UpdatingSessionsIteratorSuite extends SharedSparkSession {
     val rowsAll = rows1 ++ rows2
 
     val iterator = new UpdatingSessionsIterator(rowsAll.iterator, keysWithSessionAttributes,
-      sessionAttribute, rowAttributes, inMemoryThreshold, spillThreshold)
+      sessionAttribute, rowAttributes, inMemoryThreshold, spillThreshold, spillSizeThreshold)
 
     val retRows1 = rows1.indices.map { _ =>
       assert(iterator.hasNext)
@@ -161,7 +162,7 @@ class UpdatingSessionsIteratorSuite extends SharedSparkSession {
     val rowsAll = rows1 ++ rows2
 
     val iterator = new UpdatingSessionsIterator(rowsAll.iterator, keysWithSessionAttributes,
-      sessionAttribute, rowAttributes, inMemoryThreshold, spillThreshold)
+      sessionAttribute, rowAttributes, inMemoryThreshold, spillThreshold, spillSizeThreshold)
 
     val retRows1 = rows1.indices.map { _ =>
       assert(iterator.hasNext)
@@ -206,7 +207,7 @@ class UpdatingSessionsIteratorSuite extends SharedSparkSession {
     val rowsAll = rows1 ++ rows2 ++ rows3 ++ rows4
 
     val iterator = new UpdatingSessionsIterator(rowsAll.iterator, keysWithSessionAttributes,
-      sessionAttribute, rowAttributes, inMemoryThreshold, spillThreshold)
+      sessionAttribute, rowAttributes, inMemoryThreshold, spillThreshold, spillSizeThreshold)
 
     val retRows1 = rows1.indices.map { _ =>
       assert(iterator.hasNext)
@@ -259,7 +260,7 @@ class UpdatingSessionsIteratorSuite extends SharedSparkSession {
     val rows = List(row1, row2, row3, row4)
 
     val iterator = new UpdatingSessionsIterator(rows.iterator, keysWithSessionAttributes,
-      sessionAttribute, rowAttributes, inMemoryThreshold, spillThreshold)
+      sessionAttribute, rowAttributes, inMemoryThreshold, spillThreshold, spillSizeThreshold)
 
     // UpdatingSessionIterator can't detect error on hasNext
     assert(iterator.hasNext)
@@ -286,7 +287,7 @@ class UpdatingSessionsIteratorSuite extends SharedSparkSession {
     val rows = List(row1, row2, row3)
 
     val iterator = new UpdatingSessionsIterator(rows.iterator, keysWithSessionAttributes,
-      sessionAttribute, rowAttributes, inMemoryThreshold, spillThreshold)
+      sessionAttribute, rowAttributes, inMemoryThreshold, spillThreshold, spillSizeThreshold)
 
     // UpdatingSessionIterator can't detect error on hasNext
     assert(iterator.hasNext)
@@ -320,7 +321,7 @@ class UpdatingSessionsIteratorSuite extends SharedSparkSession {
     val rows = List(row1, row2, row3, row4)
 
     val iterator = new UpdatingSessionsIterator(rows.iterator, Seq(noKeySessionAttribute),
-      noKeySessionAttribute, noKeyRowAttributes, inMemoryThreshold, spillThreshold)
+      noKeySessionAttribute, noKeyRowAttributes, inMemoryThreshold, spillThreshold, spillSizeThreshold)
 
     val retRows = rows.indices.map { _ =>
       assert(iterator.hasNext)

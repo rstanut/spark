@@ -86,6 +86,11 @@ final class ShuffleExternalSorter extends MemoryConsumer implements ShuffleCheck
    */
   private final int numElementsForSpillThreshold;
 
+  /**
+   * Force this sorter to spill when the size in memory is beyond this threshold.
+   */
+  private final long recordsSizeForSpillThreshold;
+
   /** The buffer size to use when writing spills using DiskBlockObjectWriter */
   private final int fileBufferSizeBytes;
 
@@ -109,6 +114,7 @@ final class ShuffleExternalSorter extends MemoryConsumer implements ShuffleCheck
   @Nullable private ShuffleInMemorySorter inMemSorter;
   @Nullable private MemoryBlock currentPage = null;
   private long pageCursor = -1;
+  private long inMemRecordsSize = 0;
 
   // Checksum calculator for each partition. Empty when shuffle checksum disabled.
   private final Checksum[] partitionChecksums;
@@ -133,6 +139,8 @@ final class ShuffleExternalSorter extends MemoryConsumer implements ShuffleCheck
         (int) (long) conf.get(package$.MODULE$.SHUFFLE_FILE_BUFFER_SIZE()) * 1024;
     this.numElementsForSpillThreshold =
         (int) conf.get(package$.MODULE$.SHUFFLE_SPILL_NUM_ELEMENTS_FORCE_SPILL_THRESHOLD());
+    this.recordsSizeForSpillThreshold =
+        (long) conf.get(package$.MODULE$.SHUFFLE_SPILL_MAP_MAX_SIZE_FORCE_SPILL_THRESHOLD());
     this.writeMetrics = writeMetrics;
     this.inMemSorter = new ShuffleInMemorySorter(
       this, initialSize, (boolean) conf.get(package$.MODULE$.SHUFFLE_SORT_USE_RADIXSORT()));
@@ -330,6 +338,7 @@ final class ShuffleExternalSorter extends MemoryConsumer implements ShuffleCheck
     allocatedPages.clear();
     currentPage = null;
     pageCursor = 0;
+    inMemRecordsSize = 0;
     return memoryFreed;
   }
 
@@ -411,11 +420,14 @@ final class ShuffleExternalSorter extends MemoryConsumer implements ShuffleCheck
     // for tests
     assert(inMemSorter != null);
     if (inMemSorter.numRecords() >= numElementsForSpillThreshold) {
-      logger.info("Spilling data because number of spilledRecords crossed the threshold " +
-        numElementsForSpillThreshold);
+      logger.info("Spilling data because number of spilledRecords ({}) crossed the threshold: {}",
+          inMemSorter.numRecords(), numElementsForSpillThreshold);
+      spill();
+    } else if (inMemRecordsSize >= recordsSizeForSpillThreshold) {
+      logger.info("Spilling data because size of spilledRecords ({}) crossed the threshold: {}",
+          inMemRecordsSize, recordsSizeForSpillThreshold);
       spill();
     }
-
     growPointerArrayIfNecessary();
     final int uaoSize = UnsafeAlignedOffset.getUaoSize();
     // Need 4 or 8 bytes to store the record length.
@@ -430,6 +442,7 @@ final class ShuffleExternalSorter extends MemoryConsumer implements ShuffleCheck
     Platform.copyMemory(recordBase, recordOffset, base, pageCursor, length);
     pageCursor += length;
     inMemSorter.insertRecord(recordAddress, partitionId);
+    inMemRecordsSize += length;
   }
 
   /**

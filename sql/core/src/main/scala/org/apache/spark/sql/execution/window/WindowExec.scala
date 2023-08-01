@@ -96,6 +96,7 @@ case class WindowExec(
     val factories = windowFrameExpressionFactoryPairs.map(_._2).toArray
     val inMemoryThreshold = conf.windowExecBufferInMemoryThreshold
     val spillThreshold = conf.windowExecBufferSpillThreshold
+    val spillSizeThreshold = conf.windowExecBufferSpillSizeThreshold
 
     // Start processing.
     child.execute().mapPartitions { stream =>
@@ -123,7 +124,8 @@ case class WindowExec(
 
         // Manage the current partition.
         val buffer: ExternalAppendOnlyUnsafeRowArray =
-          new ExternalAppendOnlyUnsafeRowArray(inMemoryThreshold, spillThreshold)
+          new ExternalAppendOnlyUnsafeRowArray(inMemoryThreshold, spillThreshold,
+            spillSizeThreshold)
 
         var bufferIterator: Iterator[UnsafeRow] = _
 

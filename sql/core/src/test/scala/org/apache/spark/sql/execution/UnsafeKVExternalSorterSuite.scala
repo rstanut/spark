@@ -127,7 +127,9 @@ class UnsafeKVExternalSorterSuite extends SparkFunSuite with SharedSparkSession 
 
     val sorter = new UnsafeKVExternalSorter(
       keySchema, valueSchema, SparkEnv.get.blockManager, SparkEnv.get.serializerManager,
-      pageSize, SHUFFLE_SPILL_NUM_ELEMENTS_FORCE_SPILL_THRESHOLD.defaultValue.get)
+      pageSize, SHUFFLE_SPILL_NUM_ELEMENTS_FORCE_SPILL_THRESHOLD.defaultValue.get,
+      SHUFFLE_SPILL_MAP_MAX_SIZE_FORCE_SPILL_THRESHOLD.defaultValue.get
+    )
 
     // Insert the keys and values into the sorter
     inputData.foreach { case (k, v) =>
@@ -225,6 +227,7 @@ class UnsafeKVExternalSorterSuite extends SparkFunSuite with SharedSparkSession 
         sparkContext.env.serializerManager,
         taskMemoryManager.pageSizeBytes(),
         Int.MaxValue,
+        Long.MaxValue,
         map)
     } finally {
       TaskContext.unset()
@@ -249,6 +252,7 @@ class UnsafeKVExternalSorterSuite extends SparkFunSuite with SharedSparkSession 
         sparkContext.env.serializerManager,
         taskMemoryManager.pageSizeBytes(),
         Int.MaxValue,
+        Long.MaxValue,
         map)
       assert(sorter.getSpillSize === expectedSpillSize)
     } finally {
@@ -274,6 +278,7 @@ class UnsafeKVExternalSorterSuite extends SparkFunSuite with SharedSparkSession 
         sparkContext.env.serializerManager,
         taskMemoryManager.pageSizeBytes(),
         Int.MaxValue,
+        Long.MaxValue,
         map1)
       val sorter2 = new UnsafeKVExternalSorter(
         schema,
@@ -282,6 +287,7 @@ class UnsafeKVExternalSorterSuite extends SparkFunSuite with SharedSparkSession 
         sparkContext.env.serializerManager,
         taskMemoryManager.pageSizeBytes(),
         Int.MaxValue,
+        Long.MaxValue,
         map2)
       sorter1.merge(sorter2)
       assert(sorter1.getSpillSize === expectedSpillSize)

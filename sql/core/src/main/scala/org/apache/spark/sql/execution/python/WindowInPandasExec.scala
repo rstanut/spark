@@ -178,6 +178,7 @@ case class WindowInPandasExec(
 
     val inMemoryThreshold = conf.windowExecBufferInMemoryThreshold
     val spillThreshold = conf.windowExecBufferSpillThreshold
+    val spillSizeThreshold = conf.windowExecBufferSpillSizeThreshold
     val sessionLocalTimeZone = conf.sessionLocalTimeZone
 
     // Extract window expressions and window functions
@@ -297,7 +298,8 @@ case class WindowInPandasExec(
 
         // Manage the current partition.
         val buffer: ExternalAppendOnlyUnsafeRowArray =
-          new ExternalAppendOnlyUnsafeRowArray(inMemoryThreshold, spillThreshold)
+          new ExternalAppendOnlyUnsafeRowArray(inMemoryThreshold, spillThreshold,
+            spillSizeThreshold)
         var bufferIterator: Iterator[UnsafeRow] = _
 
         val indexRow = new SpecificInternalRow(Array.fill(numBoundIndices)(IntegerType))

@@ -115,6 +115,10 @@ case class SortMergeJoinExec(
     case _ => false
   }
 
+  private def getSpillSizeThreshold: Long = {
+    conf.sortMergeJoinExecBufferSpillSizeThreshold
+  }
+
   private def getInMemoryThreshold: Int = {
     if (onlyBufferFirstMatchedRow) {
       1
@@ -127,6 +131,7 @@ case class SortMergeJoinExec(
     val numOutputRows = longMetric("numOutputRows")
     val spillSize = longMetric("spillSize")
     val spillThreshold = getSpillThreshold
+    val spillSizeThreshold = getSpillSizeThreshold
     val inMemoryThreshold = getInMemoryThreshold
     left.execute().zipPartitions(right.execute()) { (leftIter, rightIter) =>
       val boundCondition: (InternalRow) => Boolean = {
@@ -156,6 +161,7 @@ case class SortMergeJoinExec(
               inMemoryThreshold,
               spillThreshold,
               spillSize,
+              spillSizeThreshold,
               cleanupResources
             )
             private[this] val joinRow = new JoinedRow
@@ -202,6 +208,7 @@ case class SortMergeJoinExec(
             inMemoryThreshold,
             spillThreshold,
             spillSize,
+            spillSizeThreshold,
             cleanupResources
           )
           val rightNullRow = new GenericInternalRow(right.output.length)
@@ -218,6 +225,7 @@ case class SortMergeJoinExec(
             inMemoryThreshold,
             spillThreshold,
             spillSize,
+            spillSizeThreshold,
             cleanupResources
           )
           val leftNullRow = new GenericInternalRow(left.output.length)
@@ -254,6 +262,7 @@ case class SortMergeJoinExec(
               inMemoryThreshold,
               spillThreshold,
               spillSize,
+              spillSizeThreshold,
               cleanupResources,
               onlyBufferFirstMatchedRow
             )
@@ -292,6 +301,7 @@ case class SortMergeJoinExec(
               inMemoryThreshold,
               spillThreshold,
               spillSize,
+              spillSizeThreshold,
               cleanupResources,
               onlyBufferFirstMatchedRow
             )
@@ -337,6 +347,7 @@ case class SortMergeJoinExec(
               inMemoryThreshold,
               spillThreshold,
               spillSize,
+              spillSizeThreshold,
               cleanupResources,
               onlyBufferFirstMatchedRow
             )
@@ -1268,6 +1279,7 @@ private[joins] class SortMergeJoinScanner(
     inMemoryThreshold: Int,
     spillThreshold: Int,
     spillSize: SQLMetric,
+    spillSizeThreshold: Long,
     eagerCleanupResources: () => Unit,
     onlyBufferFirstMatch: Boolean = false) {
   private[this] var streamedRow: InternalRow = _
@@ -1281,7 +1293,7 @@ private[joins] class SortMergeJoinScanner(
   private[this] var matchJoinKey: InternalRow = _
   /** Buffered rows from the buffered side of the join. This is empty if there are no matches. */
   private[this] val bufferedMatches: ExternalAppendOnlyUnsafeRowArray =
-    new ExternalAppendOnlyUnsafeRowArray(inMemoryThreshold, spillThreshold)
+    new ExternalAppendOnlyUnsafeRowArray(inMemoryThreshold, spillThreshold, spillSizeThreshold)
 
   // At the end of the task, update the task's spill size for buffered side.
   TaskContext.get().addTaskCompletionListener[Unit](_ => {
